@@ -21,21 +21,24 @@ describe("createUser()", () => {
         console.log(createdUser);
 
         expect(createdUser).toEqual({
-            id: "123e4-abcde-4567", 
-            name: "Wesley Silva", 
-            email: "testewesley@gmail.com"
+            id: input.id, 
+            name: input.name, 
+            email: input.email
         });
 
-        expect(mockPrisma.user.create).toHaveBeenCalledWith({ data: input })
+        expect(mockPrisma.user.create).toHaveBeenCalledWith({ 
+            data: {
+                email: input.email,
+                name: input.name,
+                password: input.password
+            }
+        })
 
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
 
-        const rejectedUser = await createUser(input.name, input.email, input.password);
-
-        console.log(rejectedUser);
-
-        expect(rejectedUser).rejects.toThrow(AppError);
-        expect(rejectedUser).rejects.toThrow("Email já cadastrado!!!");
+        await expect(createUser(input.name, input.email, input.password)).rejects.toMatchObject({
+            message: "Email já cadastrado!!!",
+            statusCode: 409
+        })
     });
-
 })
