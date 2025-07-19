@@ -154,3 +154,28 @@ export const deleteUser = async (id: string): Promise<object> => {
         throw new AppError("Erro inesperado ao tentar deletar usuário..." + error, 500);
     }
 }
+
+export const getAllUsers = async (id: string): Promise<UserDTO[]> => {
+    const findUser = await prisma.user.findUnique({
+        where: { id: id },
+    });
+
+    if(!findUser) {
+        throw new AppError("Usuário não encontrado...", 404);
+    }
+
+    if(findUser.role === Role.basic) {
+        throw new AppError("Você não tem privilégios de administrador...", 403);
+    }
+
+    const allUsers = await prisma.user.findMany();
+
+    const allUsersDTO = allUsers.map(user => createUserDTO({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+    }));
+
+    return allUsersDTO;
+}
