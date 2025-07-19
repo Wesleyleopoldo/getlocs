@@ -110,7 +110,7 @@ describe("getUser()", () => {
     });
 
     it("Deve lançar uma exceção de usuário não encontrado...", async () => {
-        mockPrisma.user.findUnique.mockResolvedValue(null);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
 
         await expect(getUser(input.id)).rejects.toMatchObject({
             message: "Usuário não encontrado...",
@@ -128,7 +128,7 @@ describe("putUsername()", () => {
     });
 
     it("Deve retornar o novo nome do usuário...", async () => {
-        mockPrisma.user.findUnique.mockResolvedValue(input);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
         mockPrisma.user.update.mockResolvedValueOnce(newName);
         
         const newUsername = await putUsername(input.id, newName.name);
@@ -144,7 +144,7 @@ describe("putUsername()", () => {
     });
 
     it("Deve lançar uma exceção de usuário não encontrado...", async () => {
-        mockPrisma.user.findUnique.mockResolvedValue(null);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
 
         await expect(getUser(input.id)).rejects.toMatchObject({
             message: "Usuário não encontrado...",
@@ -153,7 +153,7 @@ describe("putUsername()", () => {
     });
 });
 
-describe("putEmail", () => {
+describe("putEmail()", () => {
     const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
     const newEmail = { email: "emailalterado@gmail.com" };
 
@@ -162,7 +162,7 @@ describe("putEmail", () => {
     });
 
     it("Deve retornar o novo email do usuário...", async () => {
-        mockPrisma.user.findUnique.mockResolvedValue(input);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
         mockPrisma.user.update.mockResolvedValueOnce(newEmail);
 
         const newUserEmail = await putEmail(input.id, newEmail.email);
@@ -186,3 +186,17 @@ describe("putEmail", () => {
         });
     });
 });
+
+describe("putPassword()", () => {
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const newPassword = { password: "senhaAlterada123"};
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("Deve retornar a nova senha do usuário...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValue(input);
+        mockPrisma.user.update.mockResolvedValueOnce(newPassword);
+    });
+})
