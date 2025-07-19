@@ -113,3 +113,24 @@ export const putEmail = async (id: string, newEmail: string): Promise<UserDTO> =
 
     return userDTO;
 }
+
+export const putPassword = async (id: string, newPassword: string): Promise<UserDTO> => {
+    const findUser = await prisma.user.findUnique({
+        where: { id: id }
+    });
+
+    if(!findUser) {
+        throw new AppError("Usuário não encontrado...", 404);
+    }
+
+    const user = await prisma.user.update({
+        where: { id: findUser.id },
+        data: { password: newPassword },
+    });
+
+    const userDTO = createUserDTO({
+        password: user.password,
+    });
+
+    return userDTO;
+}
