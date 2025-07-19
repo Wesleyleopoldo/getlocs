@@ -1,6 +1,6 @@
 import mockPrisma from "../../prisma/mocks/prisma"
 import { Role } from "@prisma/client";
-import { createAdmin, createUser, getUser, putUsername, putEmail } from "../user.service";
+import { createAdmin, createUser, getUser, putUsername, putEmail, putPassword } from "../user.service";
 import { AppError } from "../../errors/errors";
 jest.mock("../../prisma/client", () => mockPrisma);
 
@@ -196,7 +196,27 @@ describe("putPassword()", () => {
     });
 
     it("Deve retornar a nova senha do usuário...", async () => {
-        mockPrisma.user.findUnique.mockResolvedValue(input);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
         mockPrisma.user.update.mockResolvedValueOnce(newPassword);
+
+        const newUserPassword = await putPassword(input.id, newPassword.password);
+
+        expect(newUserPassword).toEqual({
+            password: newPassword.password,
+        });
+
+        expect(mockPrisma.user.update).toHaveBeenCalledWith({
+            where: { id: input.id },
+            data: { password: newPassword.password },
+        });
     });
-})
+
+    it("Deve lançar uma exceção caso o usuário não exista...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+        
+        await expect(putPassword(input.id, newPassword.password)).rejects.toMatchObject({
+            message: "Usuário não encontrado...",
+            statusCode: 404,
+        });
+    });
+});
