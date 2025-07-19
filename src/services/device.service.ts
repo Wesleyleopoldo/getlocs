@@ -10,6 +10,14 @@ export const createDevice = async (userId: string, name: string): Promise<Device
     if(findDevice) {
         throw new AppError("Já existe um dispositivo com esse nome....", 409);
     }
+
+    const findUser = await prisma.user.findUnique({
+        where: { id: userId },
+    });
+
+    if(!findUser) {
+        throw new AppError("Usuário não encontrado...", 404);
+    }
     
     const newDevice = await prisma.device.create({
         data: {
