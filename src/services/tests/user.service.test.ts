@@ -1,13 +1,13 @@
 import mockPrisma from "../../prisma/mocks/prisma"
 import { Role } from "@prisma/client";
-import { createAdmin, createUser, getUser, putUsername, putEmail, putPassword, deleteUser } from "../user.service";
+import { createAdmin, createUser, getUser, putUsername, putEmail, putPassword, deleteUser, getAllUsers } from "../user.service";
 import { AppError } from "../../errors/errors";
 jest.mock("../../prisma/client", () => mockPrisma);
 
 
 describe("createUser()", () => {
-    
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456"};
+
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -22,11 +22,11 @@ describe("createUser()", () => {
         console.log(createdUser);
 
         expect(createdUser).toEqual({
-            name: input.name, 
+            name: input.name,
             email: input.email
         });
 
-        expect(mockPrisma.user.create).toHaveBeenCalledWith({ 
+        expect(mockPrisma.user.create).toHaveBeenCalledWith({
             data: {
                 email: input.email,
                 name: input.name,
@@ -48,7 +48,7 @@ describe("createUser()", () => {
 
 describe("createAdmin()", () => {
 
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456"};
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -87,7 +87,7 @@ describe("createAdmin()", () => {
 
 describe("getUser()", () => {
 
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456"};
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -130,7 +130,7 @@ describe("putUsername()", () => {
     it("Deve retornar o novo nome do usuário...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
         mockPrisma.user.update.mockResolvedValueOnce(newName);
-        
+
         const newUsername = await putUsername(input.id, newName.name);
 
         expect(newUsername).toEqual({
@@ -172,8 +172,8 @@ describe("putEmail()", () => {
         });
 
         expect(mockPrisma.user.update).toHaveBeenCalledWith({
-            where: { id: input.id},
-            data: { email: newEmail.email }, 
+            where: { id: input.id },
+            data: { email: newEmail.email },
         });
     });
 
@@ -189,7 +189,7 @@ describe("putEmail()", () => {
 
 describe("putPassword()", () => {
     const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
-    const newPassword = { password: "senhaAlterada123"};
+    const newPassword = { password: "senhaAlterada123" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -213,7 +213,7 @@ describe("putPassword()", () => {
 
     it("Deve lançar uma exceção caso o usuário não exista...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(null);
-        
+
         await expect(putPassword(input.id, newPassword.password)).rejects.toMatchObject({
             message: "Usuário não encontrado...",
             statusCode: 404,
@@ -249,5 +249,70 @@ describe("deleteUser()", () => {
             message: "Usuário não encontrado...",
             statusCode: 404,
         });
+    });
+});
+
+describe("getAllUsers()", () => {
+
+    const datas = [
+        {
+            id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+            name: 'Alice',
+            email: 'alice@example.com',
+            password: 'hashedpassword1',
+            role: Role.basic,
+        },
+        {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Bob',
+            email: 'bob@example.com',
+            password: 'hashedpassword2',
+            role: Role.basic,
+        },
+        {
+            id: '9b2c3bde-2cb7-4bd6-9102-cb22a4eafd63',
+            name: 'Carol',
+            email: 'carol@example.com',
+            password: 'hashedpassword3',
+            role: Role.basic,
+        },
+    ];
+
+    const returnDatasExpected = [
+        {
+            id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
+            name: 'Alice',
+            email: 'alice@example.com',
+            role: Role.basic,
+        },
+        {
+            id: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
+            name: 'Bob',
+            email: 'bob@example.com',
+            role: Role.basic,
+        },
+        {
+            id: '9b2c3bde-2cb7-4bd6-9102-cb22a4eafd63',
+            name: 'Carol',
+            email: 'carol@example.com',
+            role: Role.basic,
+        },
+    ];
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("Deve retornar uma lista de usuários", async () => {
+        const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456", role: Role.admin };
+
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
+        mockPrisma.user.findMany.mockResolvedValueOnce(datas);
+
+        const allUsers = await getAllUsers(input.id);
+
+        expect(allUsers).toEqual(returnDatasExpected);
+
+        expect(mockPrisma.user.findMany).toHaveBeenCalledWith();
     });
 });
