@@ -134,3 +134,19 @@ export const putPassword = async (id: string, newPassword: string): Promise<User
 
     return userDTO;
 }
+
+export const deleteUser = async (id: string): Promise<string> => {
+    const findUser = await prisma.user.findUnique({
+        where: { id: id },
+    });
+
+    if(!findUser) {
+        throw new AppError("Usuário não encontrado...", 404);
+    }
+
+    const user = await prisma.user.delete({
+        where: { id: id },
+    });
+
+    return "Sucesso";
+}
