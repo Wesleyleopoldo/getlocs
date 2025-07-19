@@ -315,4 +315,26 @@ describe("getAllUsers()", () => {
 
         expect(mockPrisma.user.findMany).toHaveBeenCalledWith();
     });
+
+    it("Deve lançar uma exceção caso o usuário não exista...", async () => {
+        const input = { id: "123e4-abcde-4567" };
+
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+
+        await expect(getAllUsers(input.id)).rejects.toMatchObject({
+            message: "Usuário não encontrado...",
+            statusCode: 404,
+        });
+    });
+
+    it("Deve lançar uma exceção caso o usuário não tenha privilégios de administrador...", async () => {
+        const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456", role: Role.basic };
+
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
+
+        await expect(getAllUsers(input.id)).rejects.toMatchObject({
+            message: "Você não tem privilégios de administrador...",
+            statusCode: 403,
+        });
+    });
 });
