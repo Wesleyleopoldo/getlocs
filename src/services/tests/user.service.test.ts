@@ -36,7 +36,7 @@ describe("createUser()", () => {
         });
     });
 
-    it("Deve estourar uma exceção de email já cadastrado...", async () => {
+    it("Deve lançar uma exceção de email já cadastrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
 
         await expect(createUser(input.name, input.email, input.password)).rejects.toMatchObject({
@@ -75,7 +75,7 @@ describe("createAdmin()", () => {
         });
     });
 
-    it("Deve estourar uma exceção de email já cadastrado...", async () => {
+    it("Deve lançar uma exceção de email já cadastrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
 
         await expect(createAdmin(input.name, input.email, input.password)).rejects.toMatchObject({
@@ -109,7 +109,7 @@ describe("getUser()", () => {
         });
     });
 
-    it("Deve estourar uma exceção de usuário não encontrado...", async () => {
+    it("Deve lançar uma exceção de usuário não encontrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValue(null);
 
         await expect(getUser(input.id)).rejects.toMatchObject({
@@ -143,7 +143,7 @@ describe("putUsername()", () => {
         });
     });
 
-    it("Deve estourar uma exceção de usuário não encontrado...", async () => {
+    it("Deve lançar uma exceção de usuário não encontrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValue(null);
 
         await expect(getUser(input.id)).rejects.toMatchObject({
@@ -177,7 +177,7 @@ describe("putEmail", () => {
         });
     });
 
-    it("Deve estourar uma exceção de usuário não encontrado...", async () => {
+    it("Deve lançar uma exceção de usuário não encontrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(null);
 
         await expect(putEmail(input.id, newEmail.email)).rejects.toMatchObject({
