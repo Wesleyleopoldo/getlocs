@@ -1,6 +1,6 @@
 import mockPrisma from "../../prisma/mocks/prisma"
 import { Role } from "@prisma/client";
-import { createAdmin, createUser, getUser, putUsername, putEmail, putPassword } from "../user.service";
+import { createAdmin, createUser, getUser, putUsername, putEmail, putPassword, deleteUser } from "../user.service";
 import { AppError } from "../../errors/errors";
 jest.mock("../../prisma/client", () => mockPrisma);
 
@@ -215,6 +215,35 @@ describe("putPassword()", () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(null);
         
         await expect(putPassword(input.id, newPassword.password)).rejects.toMatchObject({
+            message: "Usuário não encontrado...",
+            statusCode: 404,
+        });
+    });
+});
+
+describe("deleteUser()", () => {
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("Deve retornar uma mensagem de sucesso caso tenha conseguido deletar o usuário", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
+        mockPrisma.user.delete.mockResolvedValueOnce(input);
+
+        const userDeleted = await deleteUser(input.id);
+
+        expect(userDeleted).toEqual("Sucesso");
+        expect(mockPrisma.user.delete).toHaveBeenCalledWith({
+            where: { id: input.id },
+        });
+    });
+
+    it("Deve lançar uma exceção caso o usuário não exista...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+
+        await expect(deleteUser(input.id)).rejects.toMatchObject({
             message: "Usuário não encontrado...",
             statusCode: 404,
         });
