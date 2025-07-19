@@ -234,7 +234,9 @@ describe("deleteUser()", () => {
 
         const userDeleted = await deleteUser(input.id);
 
-        expect(userDeleted).toEqual("Sucesso");
+        expect(userDeleted).toEqual({
+            message: `Usuário ${input.name} deletado.`
+        });
         expect(mockPrisma.user.delete).toHaveBeenCalledWith({
             where: { id: input.id },
         });
