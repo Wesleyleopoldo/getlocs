@@ -1,13 +1,13 @@
 import mockPrisma from "../../prisma/mocks/prisma"
 import { Role } from "@prisma/client";
-import { createAdmin, createUser, getUser, putUsername, putEmail, putPassword, deleteUser, getAllUsers } from "../user.service";
+import { createAdmin, createUser, getUser, putName, putEmail, putPassword, deleteUser, getAllUsers } from "../user.service";
 import { AppError } from "../../errors/errors";
 jest.mock("../../prisma/client", () => mockPrisma);
 
 
 describe("createUser()", () => {
 
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -17,12 +17,13 @@ describe("createUser()", () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(null)
         mockPrisma.user.create.mockResolvedValueOnce(input);
 
-        const createdUser = await createUser(input.name, input.email, input.password);
+        const createdUser = await createUser(input.name, input.username, input.email, input.password);
 
         console.log(createdUser);
 
         expect(createdUser).toEqual({
             name: input.name,
+            username: input.username,
             email: input.email
         });
 
@@ -30,6 +31,7 @@ describe("createUser()", () => {
             data: {
                 email: input.email,
                 name: input.name,
+                username: input.username,
                 password: input.password,
                 role: Role.basic
             }
@@ -39,8 +41,18 @@ describe("createUser()", () => {
     it("Deve lançar uma exceção de email já cadastrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
 
-        await expect(createUser(input.name, input.email, input.password)).rejects.toMatchObject({
+        await expect(createUser(input.name, input.username, input.email, input.password)).rejects.toMatchObject({
             message: "Email já cadastrado!!!",
+            statusCode: 409
+        });
+    });
+
+    it("Deve lançar uma exceção de username indisponível...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
+
+        await expect(createUser(input.name, input.username, input.email, input.password)).rejects.toMatchObject({
+            message: "Username não disponível!!!",
             statusCode: 409
         });
     });
@@ -48,7 +60,7 @@ describe("createUser()", () => {
 
 describe("createAdmin()", () => {
 
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -58,10 +70,11 @@ describe("createAdmin()", () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(null);
         mockPrisma.user.create.mockResolvedValueOnce(input);
 
-        const createdAdmin = await createAdmin(input.name, input.email, input.password);
+        const createdAdmin = await createAdmin(input.name, input.username, input.email, input.password);
 
         expect(createdAdmin).toEqual({
             name: input.name,
+            username: input.username,
             email: input.email,
         });
 
@@ -69,6 +82,7 @@ describe("createAdmin()", () => {
             data: {
                 email: input.email,
                 name: input.name,
+                username: input.username,
                 password: input.password,
                 role: Role.admin
             }
@@ -78,8 +92,18 @@ describe("createAdmin()", () => {
     it("Deve lançar uma exceção de email já cadastrado...", async () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
 
-        await expect(createAdmin(input.name, input.email, input.password)).rejects.toMatchObject({
+        await expect(createAdmin(input.name, input.username, input.email, input.password)).rejects.toMatchObject({
             message: "Email já cadastrado!!!",
+            statusCode: 409
+        });
+    });
+
+    it("Deve lançar uma exceção de username indisponível...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
+
+        await expect(createUser(input.name, input.username, input.email, input.password)).rejects.toMatchObject({
+            message: "Username não disponível!!!",
             statusCode: 409
         });
     });
@@ -87,7 +111,7 @@ describe("createAdmin()", () => {
 
 describe("getUser()", () => {
 
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -119,8 +143,8 @@ describe("getUser()", () => {
     });
 });
 
-describe("putUsername()", () => {
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+describe("putName()", () => {
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
     const newName = { name: "Nome alterado" };
 
     beforeEach(() => {
@@ -131,7 +155,7 @@ describe("putUsername()", () => {
         mockPrisma.user.findUnique.mockResolvedValueOnce(input);
         mockPrisma.user.update.mockResolvedValueOnce(newName);
 
-        const newUsername = await putUsername(input.id, newName.name);
+        const newUsername = await putName(input.id, newName.name);
 
         expect(newUsername).toEqual({
             name: newName.name
@@ -154,7 +178,7 @@ describe("putUsername()", () => {
 });
 
 describe("putEmail()", () => {
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
     const newEmail = { email: "emailalterado@gmail.com" };
 
     beforeEach(() => {
@@ -188,7 +212,7 @@ describe("putEmail()", () => {
 });
 
 describe("putPassword()", () => {
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
     const newPassword = { password: "senhaAlterada123" };
 
     beforeEach(() => {
@@ -202,7 +226,7 @@ describe("putPassword()", () => {
         const newUserPassword = await putPassword(input.id, newPassword.password);
 
         expect(newUserPassword).toEqual({
-            password: newPassword.password,
+            message: "Senha alterada com sucesso!!!"
         });
 
         expect(mockPrisma.user.update).toHaveBeenCalledWith({
@@ -222,7 +246,7 @@ describe("putPassword()", () => {
 });
 
 describe("deleteUser()", () => {
-    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", email: "testewesley@gmail.com", password: "123456" };
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
 
     beforeEach(() => {
         jest.clearAllMocks();

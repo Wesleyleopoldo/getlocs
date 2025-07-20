@@ -3,7 +3,7 @@ import { Role } from "@prisma/client";
 import { createUserDTO, UserDTO } from "../dtos/user.dto";
 import { AppError } from "../errors/errors";
 
-export const createUser = async (name: string, email: string, password: string): Promise<UserDTO> => {
+export const createUser = async (name: string, username: string, email: string, password: string): Promise<UserDTO> => {
     const findUser = await prisma.user.findUnique({
         where: { email: email }
     });
@@ -12,24 +12,34 @@ export const createUser = async (name: string, email: string, password: string):
         throw new AppError("Email já cadastrado!!!", 409);
     }
 
+    const findUserByUsername = await prisma.user.findUnique({
+        where: { username: username }
+    });
+
+    if(findUserByUsername) {
+        throw new AppError("Username não disponível!!!", 409);
+    }
+
     const newUser = await prisma.user.create({
         data: {
             name: name,
+            username: username,
             email: email,
             password: password,
             role: Role.basic,
         }
-    })
+    });
 
     const userDTO = createUserDTO({
         name: newUser.name,
+        username: newUser.username,
         email: newUser.email,
     });
 
     return userDTO;
 }
 
-export const createAdmin = async (name: string, email: string, password: string): Promise<UserDTO> => {
+export const createAdmin = async (name: string, username: string, email: string, password: string): Promise<UserDTO> => {
     const findAdmin = await prisma.user.findUnique({
         where: { email: email }
     });
@@ -38,9 +48,18 @@ export const createAdmin = async (name: string, email: string, password: string)
         throw new AppError("Email já cadastrado!!!", 409);
     }
 
+    const findUserByUsername = await prisma.user.findUnique({
+        where: { username: username }
+    });
+
+    if(findUserByUsername) {
+        throw new AppError("Username não disponível!!!", 409);
+    }
+
     const newAdmin = await prisma.user.create({
         data: {
             name: name,
+            username: username,
             email: email,
             password: password,
             role: Role.admin,
@@ -49,6 +68,7 @@ export const createAdmin = async (name: string, email: string, password: string)
 
     const userDTO = createUserDTO({
         name: newAdmin.name,
+        username: newAdmin.username,
         email: newAdmin.email,
     });
 
@@ -72,7 +92,7 @@ export const getUser = async (id: string): Promise<UserDTO> => {
     return userDTO;
 }
 
-export const putUsername = async (id: string, newName: string): Promise<UserDTO> => {
+export const putName = async (id: string, newName: string): Promise<UserDTO> => {
     const findUser = await prisma.user.findUnique({
         where: { id: id }
     });
@@ -114,7 +134,7 @@ export const putEmail = async (id: string, newEmail: string): Promise<UserDTO> =
     return userDTO;
 }
 
-export const putPassword = async (id: string, newPassword: string): Promise<UserDTO> => {
+export const putPassword = async (id: string, newPassword: string): Promise<object> => {
     const findUser = await prisma.user.findUnique({
         where: { id: id }
     });
@@ -128,11 +148,7 @@ export const putPassword = async (id: string, newPassword: string): Promise<User
         data: { password: newPassword },
     });
 
-    const userDTO = createUserDTO({
-        password: user.password,
-    });
-
-    return userDTO;
+    return { message: "Senha alterada com sucesso!!!" };
 }
 
 export const deleteUser = async (id: string): Promise<object> => {
