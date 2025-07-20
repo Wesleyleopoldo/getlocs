@@ -17,40 +17,76 @@ enum Role {
   admin
   basic
 }
+/*
+ID
+USERID
+FINGERPRINT <- UNIQUE
+ALLOW_ACCESS DEFAULT 3
+ACCESS_USED
+DATETIME_FIRST_ACCESS
 
-model EmergencyAccess {
-  id String @id @default(uuid())
+ID
+EMERGENCY_ACCESSID(ID OF EMERGENCY ACCESS ALLOW)
+IP
+LONGITUDE
+LATITUDE
+USER_AGENT
+DATETIME_ACCESS
+
+*/
+
+model EmergencyDeviceVisitor {
+  id              String @id @default(uuid())
+  user            User @relation(fields: [userId], references: [id])
+  userId          String
+  fingerPrint     String @unique
+  allowAccess     Int @default(3)
+  accessUsed      Int @default(0)
+  dateFirstAccess DateTime @default(now())
+  datesAccess     DateAccessEmergency[]
+}
+
+model DateAccessEmergency {
+  id              String @id @default(uuid())
+  deviceVisitor   EmergencyDeviceVisitor @relation(fields: [deviceId], references: [id])
+  deviceId        String
+  ip              String
+  longitude       Decimal
+  latitude        Decimal
+  userAgent       String
+  dateAccess      DateTime @default(now())
 }
 
 model User {
-  id        String @id @default(uuid())
-  name      String
-  username  String @unique
-  email     String @unique
-  password  String
-  role      Role   @default(basic)
-  devices   Device[]
+  id              String @id @default(uuid())
+  name            String
+  username        String @unique
+  email           String @unique
+  password        String
+  role            Role   @default(basic)
+  deviceVisitor   EmergencyDeviceVisitor[]
+  devices         Device[]
 }
 
 model Device {
-  id          Int @id @default(autoincrement())
-  name        String
-  uuidUnique  String @unique @default(uuid())
-  status      Boolean? @default(false)
-  battery     Int?
-  longitude   Decimal?
-  latitude    Decimal?
-  user        User @relation(fields: [userId], references: [id])
-  userId      String
-  createdAt   DateTime @default(now())
-  positions   Positions[]
+  id              Int @id @default(autoincrement())
+  name            String
+  uuidUnique      String @unique @default(uuid())
+  status          Boolean? @default(false)
+  battery         Int?
+  longitude       Decimal?
+  latitude        Decimal?
+  user            User @relation(fields: [userId], references: [id])
+  userId          String
+  createdAt       DateTime @default(now())
+  positions       Positions[]
 }
 
 model Positions {
-  id          Int @id @default(autoincrement())
-  device      Device @relation(fields: [deviceId], references: [id])
-  deviceId    Int
-  battery     Int
-  longitude   Decimal
-  latitude    Decimal
+  id              Int @id @default(autoincrement())
+  device          Device @relation(fields: [deviceId], references: [id])
+  deviceId        Int
+  battery         Int
+  longitude       Decimal
+  latitude        Decimal
 }
