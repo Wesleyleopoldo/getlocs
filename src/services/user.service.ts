@@ -151,6 +151,27 @@ export const putPassword = async (id: string, newPassword: string): Promise<obje
     return { message: "Senha alterada com sucesso!!!" };
 }
 
+export const putUsername = async (id: string, username: string): Promise<object> => {
+    const findUser = await prisma.user.findUnique({
+        where: { id: id },
+    });
+
+    if(!findUser) {
+        throw new AppError("Usuário não encontrado...", 404);
+    }
+
+    const user = await prisma.user.update({
+        where: { id: findUser.id },
+        data: { username: username }
+    });
+
+    const userDTO = createUserDTO({
+        username: user.username
+    });
+
+    return userDTO;
+}
+
 export const deleteUser = async (id: string): Promise<object> => {
     const findUser = await prisma.user.findUnique({
         where: { id: id },

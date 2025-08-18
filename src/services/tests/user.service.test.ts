@@ -1,6 +1,6 @@
 import mockPrisma from "../../prisma/mocks/prisma"
 import { Role } from "@prisma/client";
-import { createAdmin, createUser, getUser, putName, putEmail, putPassword, deleteUser, getAllUsers } from "../user.service";
+import { createAdmin, createUser, getUser, putName, putEmail, putPassword, deleteUser, getAllUsers, putUsername } from "../user.service";
 import { AppError } from "../../errors/errors";
 jest.mock("../../prisma/client", () => mockPrisma);
 
@@ -359,6 +359,42 @@ describe("getAllUsers()", () => {
         await expect(getAllUsers(input.id)).rejects.toMatchObject({
             message: "Você não tem privilégios de administrador...",
             statusCode: 403,
+        });
+    });
+});
+
+describe("putUsername()", () => {
+    const input = { id: "123e4-abcde-4567", name: "Wesley Silva", username: "Wesley.silva", email: "testewesley@gmail.com", password: "123456" };
+    const newUsername = { username: "username.alterado" };
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("Deve retornar o novo username do usuário...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(input);
+        mockPrisma.user.update.mockResolvedValueOnce(newUsername);
+
+        const newUserUsername = await putUsername(input.id, newUsername.username);
+
+        console.log(newUserUsername);
+
+        expect(newUserUsername).toEqual({
+            username: newUsername.username
+        });
+
+        expect(mockPrisma.user.update).toHaveBeenCalledWith({
+            where: { id: input.id },
+            data: { username: newUsername.username },
+        });
+    });
+
+    it("Deve lançar uma exceção de usuário não encontrado...", async () => {
+        mockPrisma.user.findUnique.mockResolvedValueOnce(null);
+
+        await expect(putUsername(input.id, newUsername.username)).rejects.toMatchObject({
+            message: "Usuário não encontrado...",
+            statusCode: 404,
         });
     });
 });
