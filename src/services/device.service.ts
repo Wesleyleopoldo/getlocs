@@ -34,3 +34,31 @@ export const createDevice = async (userId: string, name: string): Promise<Device
 
     return deviceDTO;
 }
+
+export const putDeviceName = async (userId: string, deviceUuid: string, newName: string): Promise<DeviceDTO> => {
+
+    const findUser = await prisma.user.findUnique({
+        where: { id: userId }
+    });
+
+    if(!findUser) throw new AppError("Usuário não existe na base de dados...", 404);
+
+    const findDevice = await prisma.device.findUnique({
+        where: { uuidUnique: deviceUuid }
+    });
+
+    if(!findDevice) throw new AppError("Dispositivo não existe na base de dados...", 404);
+
+    if(findDevice.userId !== findUser.id) throw new AppError("Ação não autorizada...", 403);
+
+    const device = await prisma.device.update({
+        where: { uuidUnique: deviceUuid },
+        data: { name: newName },
+    });
+
+    const deviceDTO = createDeviceDTO({
+        name: device.name,
+    });
+
+    return deviceDTO;
+}
